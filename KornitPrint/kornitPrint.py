@@ -46,7 +46,7 @@ class KornitPrint(QMainWindow):
         btnLogin.setIcon(QIcon("icon/switch-user.png"))
         btnLogin.setIconSize(QSize(30, 30))
         btnLogin.setStatusTip('Click here to change printer user.')
-        btnLogin.setToolTip('Click here to change printer user.')
+        btnLogin.setToolTip('Click here to change printer user')
         btnLogin.clicked.connect(self.btnLogin_Clicked)
 
         hbox = QHBoxLayout()
@@ -77,7 +77,7 @@ class KornitPrint(QMainWindow):
         btnNextQueue.setIcon(QIcon("icon/btn-queue1.png"))
         btnNextQueue.setIconSize(QSize(60, 60))
         btnNextQueue.setStatusTip('View next available queue.')
-        btnNextQueue.setToolTip('View next available queue.')
+        btnNextQueue.setToolTip('View next available queue')
         btnNextQueue.setAutoRaise(True)
         btnNextQueue.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         btnNextQueue.setText("IP View next \n available queue")
@@ -87,7 +87,7 @@ class KornitPrint(QMainWindow):
         btnLoadQueue = QToolButton()
         btnLoadQueue.setIcon(QIcon("icon/load.png"))
         btnLoadQueue.setIconSize(QSize(60, 60))
-        btnLoadQueue.setStatusTip("Load queue as in progress")
+        btnLoadQueue.setStatusTip("Load queue as in progress.")
         btnLoadQueue.setToolTip("Load queue as in progress")
         btnLoadQueue.setAutoRaise(True)
         btnLoadQueue.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
@@ -98,8 +98,8 @@ class KornitPrint(QMainWindow):
         btnSplitQueue = QToolButton()
         btnSplitQueue.setIcon(QIcon("icon/split.png"))
         btnSplitQueue.setIconSize(QSize(60, 60))
-        btnSplitQueue.setStatusTip("Split Queue")
-        btnSplitQueue.setToolTip("Split Queue")
+        btnSplitQueue.setStatusTip("Split Queue on server.")
+        btnSplitQueue.setToolTip("Split Queue on server")
         btnSplitQueue.setAutoRaise(True)
         btnSplitQueue.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         btnSplitQueue.setText("Split Queue")
@@ -109,7 +109,8 @@ class KornitPrint(QMainWindow):
         btnPullSplit = QToolButton()
         btnPullSplit.setIcon(QIcon("icon/pull-split.png"))
         btnPullSplit.setIconSize(QSize(60, 60))
-        btnPullSplit.setStatusTip("Pull down split breeze queue")
+        btnPullSplit.setStatusTip("Pull down split breeze queue.")
+        btnPullSplit.setToolTip("Pull down split breeze queue")
         btnPullSplit.setAutoRaise(True)
         btnPullSplit.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         btnPullSplit.setText("Pull Down \n Split Queue")
@@ -120,11 +121,23 @@ class KornitPrint(QMainWindow):
         btnPullQueue.setIcon(QIcon("icon/arrow-down.png"))
         btnPullQueue.setIconSize(QSize(60, 60))
         btnPullQueue.setStatusTip("Pull down breeze queue.")
+        btnPullQueue.setToolTip("Pull down breeze queue")
         btnPullQueue.setAutoRaise(True)
         btnPullQueue.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         btnPullQueue.setText("Pull Down \n Queue")
         btnPullQueue.clicked.connect(self.btnPullQueue_Clicked)
         grdTools.addWidget(btnPullQueue, 1, 0)
+        
+        btnFinishQueue = QToolButton()
+        btnFinishQueue.setIcon(QIcon("icon/finish-queue.png"))
+        btnFinishQueue.setIconSize(QSize(60, 60))
+        btnFinishQueue.setStatusTip("Set queue as being printed.")
+        btnFinishQueue.setToolTip("Set queue as being printed")
+        btnFinishQueue.setAutoRaise(True)
+        btnFinishQueue.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        btnFinishQueue.setText("Add to finished")
+        btnFinishQueue.clicked.connect(self.btnFinishQueue_Clicked)
+        grdTools.addWidget(btnFinishQueue, 1, 1)
         
         gbTools.setLayout(grdTools)
         
@@ -248,26 +261,14 @@ class KornitPrint(QMainWindow):
                     fileName = skuType+"_"+printType+"_"+queue+"."+order+"."+skuName+"."+db+"."+sizeGarment+"."+qty+"_"+qty+"_"+pos1+"_"+ext
                     shutil.copy(os.path.join("//qserver/Breeze Artwork Storage", file), os.path.join("c:\HotFolder", fileName))
                     
-#             for file in os.listdir("c:\HotFolder"):
-#                 item = os.path.join("c:\HotFolder",file)
-#                 if os.path.isfile(item):
-#                     type = file.split("_")
-#                 
-#                     queue = type[0]
-#                     order = type[1]
-#                     skuName = type[2]
-#                     db = type[3]
-#                     sizeGarment = type[4]
-#                     skuType = type[5]
-#                     printType = type[6]
-#                     qty = type[7]
-#                     pos1 = type[8]
-#                     ext = type[9]
-#                     
-#                     fileName = skuType+"_"+printType+"_"+queue+"."+order+"."+skuName+"."+db+"."+sizeGarment+"."+qty+"_"+pos1+"_"+ext
-#                     print(file, fileName)
-#                     os.rename(os.path.join("c:\HotFolder",file), os.path.join("c:\HotFolder",fileName))
-                    #A345T_Normal_67860.1264015.A345TRIPLETTS.I.X5TSHIRT.1_1_44_25.tif
+    def btnFinishQueue_Clicked(self):
+        queueNumber, ok = QInputDialog.getText(self, "Queue Number", "Please enter queue number.")
+        if ok and queueNumber:
+            KornitData.insertQueuePrinted(self, queueNumber)
+            QMessageBox.information(self, "Added", "Queue number " + queueNumber + " has been marked as printed.", QMessageBox.Ok)
+        elif ok and not queueNumber:
+            QMessageBox.critical(self, "Enter Queue", "Plese enter a queue number.")
+            self.btnFinishQueue_Clicked()
         
     def startReport(self): 
         self.myLongTask.start()
@@ -281,7 +282,7 @@ class KornitPrint(QMainWindow):
         self.myLoadingMovie.hide()      
         self.nqt = NextQueueTable.createTable(self, self.data)
         self.nqt.show()
-        self.nqt.resize(QSize(900, 400))
+        self.nqt.resize(QSize(815, 400))
         self.setPalette(QPalette())        
         self.setEnabled(True)
         
@@ -362,7 +363,6 @@ class SplitThread(QThread):
         for file in os.listdir("//qserver/Breeze Artwork Storage"):
             if file[:len(kp.queueNumber)] == kp.queueNumber:
                 lsQueue.append(file)
-                print(file)
         for i in range(kp.machineNumber):
             for c in lsQueue[i::kp.machineNumber]:
                 shutil.copy(os.path.join("//qserver/Breeze Artwork Storage", c), os.path.join("//qserver/Breeze Artwork Storage/Test", str(i + 1)+"_" + c))
@@ -415,7 +415,7 @@ class KornitData():
         db = ConnectDB.sqlConnect(self, "InkPixi")
         db.execute("""EXEC InkPixi.dbo.uspGetIPOldestOpenQueues""")
         ds = db.fetchall()
-        
+
         return ds
     
     def insertQueue(self, queueNumber):
@@ -429,6 +429,18 @@ class KornitData():
             db.commit()
         except BaseException as e:
             QMessageBox.warning(self, 'Database Error', str(e), QMessageBox.Ok)
+            
+    def insertQueuePrinted(self, queueNumber):
+        db = ConnectDB.sqlConnect(self, "ImportExport")
+        db.execute("""INSERT INTO dbo.QueuesPrinted 
+                    (QueueID, [Database], Kornit, PrintType, [Date Entered]) 
+                    SELECT    js.ID, 'I', HOST_NAME(), 'Breeze', GETDATE() 
+                    FROM    dbo.JobStamps js 
+                    LEFT JOIN   dbo.QueuesPrinted qp ON js.ID = qp.QueueID 
+                    WHERE    js.ID = ?
+                       AND    qp.QueueID IS NULL""", (queueNumber))
+        db.commit()
+        
         
 if __name__ == "__main__":
     #For windows 7
