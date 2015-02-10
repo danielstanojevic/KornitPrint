@@ -323,6 +323,8 @@ class NextQueueTable(QTableWidget):
 
         tblNextQue.setColumnCount(7)
         tblNextQue.setAlternatingRowColors(True)
+        head = tblNextQue.horizontalHeader()
+        head.setStretchLastSection(True)
         lstHeader = ["Queue Letter", "Description", "Orders", "Queue Date", "Oldest Order Date", "Queue Pulled Date", "Kornit ID"]     
         tblNextQue.setHorizontalHeaderLabels(lstHeader)
         #tblNextQue.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
