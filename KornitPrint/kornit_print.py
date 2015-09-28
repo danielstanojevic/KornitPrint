@@ -36,7 +36,7 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
                 KornitData.insert_printer(self, prn_name)
                 os.startfile(killAlerts)
             else:
-                msg = "Please enter your correct user name, which is your first name and last initial. Example: \"brandonc\""
+                msg = "Please enter your correct user name, which is your first name and last initial. Example: \"brodiew\""
                 QMessageBox.warning(self, 'User not found.', msg, QMessageBox.Ok)
         
     def view_next_queues(self):
@@ -68,6 +68,7 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
     def load_queue(self):
         
         queueNumber, ok = QInputDialog.getText(self, 'Enter Queue', 'Please scan or enter queue:')
+        print(ok, queueNumber)
  
         if ok:
             KornitData.insertQueue(self, queueNumber)
@@ -89,9 +90,9 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
                     if file[:len(queueNumber)] == queueNumber:
                         lsQueue.append(file)
                 
-                for file in os.listdir("//qserver/Breeze Artwork Storage"):
+                for file in os.listdir("//qserver/Breeze Artwork Storage/SplitQueues"):
                     if file[2:len(queueNumber) +2] == queueNumber:
-                        os.remove("//qserver/Breeze Artwork Storage/" + file)
+                        os.remove("//qserver/Breeze Artwork Storage/SplitQueues/" + file)
                 
                  
                 for ordr in lsQueue:
@@ -163,7 +164,7 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
             front = len(str(machineNumber)) + len(str(queueNumber))+2
             back = len(str(firstOrder)) + front
             
-            dir_lst = os.listdir("//qserver/Breeze Artwork Storage")
+            dir_lst = os.listdir("//qserver/Breeze Artwork Storage/SplitQueues")
             counts = Counter(dir_lst)
                         
             for file in dir_lst:
@@ -182,7 +183,7 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
                     ext = type[10]
                     
                     fileName = skuType+"_"+printType+"_"+queue+"."+order+"."+skuName+"."+db+"."+sizeGarment+"."+qty+"_"+qty+"_"+pos1+"_"+ext                    
-                    shutil.copy(os.path.join("//qserver/Breeze Artwork Storage", file), os.path.join("c:\HotFolder", fileName))
+                    shutil.copy(os.path.join("//qserver/Breeze Artwork Storage/SplitQueues", file), os.path.join("c:\HotFolder", fileName))
                     #shutil.copy(os.path.join("//qserver/Breeze Artwork Storage/Test", file), os.path.join("//qserver/BreezeSplitQueues", file))                                        
         elif ok and not queueNumber:
             mb.critical(self, "No Queue Number", "Must enter queue number to continue.")
@@ -278,7 +279,7 @@ class SplitThread(QThread):
                 us = "_"
                 
                 file = queue+us+order+us+skuName+us+db+us+sizeGarment+us+skuType+us+printType+us+str(new_qty)+us+pos1+us+ext
-                shutil.copy(os.path.join("//qserver/Breeze Artwork Storage", c), os.path.join("//qserver/Breeze Artwork Storage", str(i + 1) + "_" + file))
+                shutil.copy(os.path.join("//qserver/Breeze Artwork Storage", c), os.path.join("//qserver/Breeze Artwork Storage/SplitQueues", str(i + 1) + "_" + file))
                 cnt += 1
                 self.copied.emit(cnt)
                 
