@@ -1,0 +1,21 @@
+<RCC>
+  <qresource prefix="images">
+    <file>../icon/pixi_logo_new.png</file>
+    <file>../icon/arrow-down.png</file>
+    <file>../icon/btn-queue1.png</file>
+    <file>../icon/exit.png</file>
+    <file>../icon/finish-queue.png</file>
+    <file>../icon/help.png</file>
+    <file>../icon/load.png</file>
+    <file>../icon/LoadingCircleTrans.gif</file>
+    <file>../icon/out-of-stock.png</file>
+    <file>../icon/print-shirt.png</file>
+    <file>../icon/print-source.png</file>
+    <file>../icon/pull-split.png</file>
+    <file>../icon/reprint.png</file>
+    <file>../icon/scanner.ico</file>
+    <file>../icon/scanner.png</file>
+    <file>../icon/split.png</file>
+    <file>../icon/switch-user.png</file>
+  </qresource>
+</RCC>
