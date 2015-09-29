@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="images">
+    <file>../icon/gears.gif</file>
+    <file>../icon/btn-queue2.png</file>
+    <file>../icon/kill-art.png</file>
     <file>../icon/pixi_logo_new.png</file>
     <file>../icon/arrow-down.png</file>
     <file>../icon/btn-queue1.png</file>

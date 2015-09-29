@@ -1,8 +1,8 @@
 import sys, webbrowser, os, shutil 
 from collections import Counter
-from ui import Ui_mwKornitPrint
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QSizePolicy, QVBoxLayout, QMessageBox, QTableWidget, QTableWidgetItem, QInputDialog,\
-    QProgressDialog
+from contextlib import closing
+from ui import Ui_mwKornitPrint, Ui_pbarSplit
+from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QSizePolicy, QVBoxLayout, QMessageBox, QTableWidget, QTableWidgetItem, QInputDialog
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSize
 from PyQt5.QtGui import QMovie, QPalette, QIcon, QFont
 import pyodbc
@@ -19,10 +19,9 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
         self.btnPullSplit.clicked.connect(self.pull_split_queue)
         self.btnPullQueue.clicked.connect(self.pull_queue)
         self.btnFinishQueue.clicked.connect(self.set_queue_printed)
+        self.btnKillArtwork.clicked.connect(self.kill_artwork)
+        self.btnPullSource.clicked.connect(self.pull_source)
         
-        #self.hbTitle.addStretch(1)
-        #self.hbox.addStretch(1)
-        #self.hbox1.addStretch(1)
         self.vBox.addStretch(1)
         #self.switch_printer_user()
         
@@ -36,7 +35,7 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
                 KornitData.insert_printer(self, prn_name)
                 os.startfile(killAlerts)
             else:
-                msg = "Please enter your correct user name, which is your first name and last initial. Example: \"brodiew\""
+                msg = "Please enter your correct user name, which is your first name and last initial. Example: \"brandonc\""
                 QMessageBox.warning(self, 'User not found.', msg, QMessageBox.Ok)
         
     def view_next_queues(self):
@@ -68,9 +67,9 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
     def load_queue(self):
         
         queueNumber, ok = QInputDialog.getText(self, 'Enter Queue', 'Please scan or enter queue:')
-        print(ok, queueNumber)
  
         if ok:
+            queueNumber = queueNumber.lsplit("0")
             KornitData.insertQueue(self, queueNumber)
             ie = webbrowser.get(webbrowser.iexplore)
             ie.open('http://sqlrptserver/ReportServer_SQLREPORTS/Pages/ReportViewer.aspx?%' + \
@@ -81,6 +80,7 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
 
         queueNumber, ok = QInputDialog.getText(self, 'Split Queue', "Enter Queue to be split.")
         if ok and queueNumber:
+            queueNumber = queueNumber.lstrip("0")
             machineNumber, ok = QInputDialog.getInt(self, 'Number of Machines', 'Please enter number of machines (2-9)', 2, 2, 9, 1, )
             if ok and machineNumber:
                 
@@ -105,8 +105,8 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
                 self.startSplit.copied.connect(self.split_progress)             
                 self.startSplit.splitFinished.connect(self.splitQueueFinish)    
                 
-                self.progressSplt = QProgressDialog('Splitting Queue...', 'Cancel', 0, len(lstAll))
-                self.progressSplt.setWindowModality(Qt.WindowModal)
+                self.progressSplt = ProgressBarSplit(len(lstAll))
+                #self.progressSplt.setWindowModality(Qt.WindowModal)
                 self.progressSplt.setWindowTitle('Splitting Queues')
                 self.progressSplt.setWindowFlags(Qt.WindowStaysOnTopHint)
                 self.progressSplt.setWindowIcon(QIcon('icon/scanner.png'))
@@ -124,7 +124,6 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
         self.progressSplt.setValue(val)
 
     def split_cancel(self):
-        
         self.startSplit.terminate()
         self.setPalette(QPalette())        
         self.setEnabled(True)  
@@ -143,6 +142,7 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
         
         queueNumber, ok = ind.getText(self, "Queue Number", "Please enter queue number.")
         if ok and queueNumber:
+            queueNumber = queueNumber.lstrip("0")
             
             firstOrder, ok = ind.getText(self, "Starting Order", "Optional - please enter the beginning order number.")
             if not firstOrder: firstOrder = 1
@@ -197,7 +197,7 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
         
         queueNumber, ok = ind.getText(self, "Queue Number", "Please enter queue number.")
         if ok and queueNumber:
-            
+            queueNumber = queueNumber.lstrip("0")
             firstOrder, ok = ind.getText(self, "Starting Order", "Optional - please enter the  beginning order number.")
             if not firstOrder: firstOrder = 1
             
@@ -234,11 +234,27 @@ class KornitPrint(QMainWindow, Ui_mwKornitPrint):
     def set_queue_printed(self):
         queueNumber, ok = QInputDialog.getText(self, "Queue Number", "Please enter queue number.")
         if ok and queueNumber:
+            queueNumber = queueNumber.lstrip("0")
             KornitData.insertQueuePrinted(self, queueNumber)
             QMessageBox.information(self, "Added", "Queue number " + queueNumber + " has been marked as printed.", QMessageBox.Ok)
         elif ok and not queueNumber:
             QMessageBox.critical(self, "Enter Queue", "Please enter a queue number.")
-            self.set_queue_printed()                    
+            self.set_queue_printed()           
+
+    def kill_artwork(self):
+        item_num, ok = QInputDialog.getText(self, "Enter Item", "Please enter item number:")
+        if ok and item_num:
+            KornitData.kill_artwork(self, item_num)
+            QMessageBox.information(self, 'Added', 'The art work has been added to the kill list, please wait 45 - 60 minutes to pull from source.', QMessageBox.Ok)
+                
+    def pull_source(self):
+        item_num, ok = QInputDialog.getText(self, "Enter Item", "Please enter item number:")
+        if ok and item_num:
+            paths = KornitData.pull_source(self, item_num)
+            if paths:
+                spt_paths = paths.split("!")
+                shutil.copy(spt_paths[0].replace('\"', '').strip(), spt_paths[1].replace('\"', '').strip())
+                QMessageBox.information(self, 'Loading', 'Source artwork should show up in QuickP shortly.')  
 
 class ViewQueues(QThread):
     taskFinished = pyqtSignal()
@@ -306,12 +322,12 @@ class MoviePlayer(QWidget):
         #self.resize(400, 500)
 
         self.movieLabel.setMovie(self.movie)
-        self.movie.setFileName('icon/LoadingCircleTrans.gif')
+        self.movie.setFileName('icon/gears.gif')
 
         pos = kp.pos()
 
-        x = pos.x() - ((self.width()/2) - (kp.width()/2)) +140
-        y = pos.y() - ((self.height()/2) - (kp.height()/2)) +180
+        x = pos.x() - ((self.width()/2) - (kp.width()/2)) +220
+        y = pos.y() - ((self.height()/2) - (kp.height()/2)) +160
         
         self.setGeometry(x,y, 400, 500)
 
@@ -370,6 +386,14 @@ class ConnectDB():
             QMessageBox.critical(kp, 'Database Error', "Can not connect to database: \n" + str(e), QMessageBox.Ok)
         return db  
     
+    def qserver_connect(self):
+        try:
+            conn = pyodbc.connect('DRIVER={SQL Server}; SERVER=QSERVER\SQLEXPRESSQSRV; DATABASE=ProductionData; Trusted_Connection=yes')
+            db = conn.cursor()
+        except BaseException as e:
+            QMessageBox.critical(kp, 'Database Error', "Can not connect to database: \n" + str(e), QMessageBox.Ok)
+        return db  
+    
 class KornitData():
     def getNextQueue(self):
         db = ConnectDB.sqlConnect(self, "InkPixi")
@@ -423,8 +447,41 @@ class KornitData():
                        "SELECT '" + printer + "',HOST_NAME(), GETDATE()")
             db.commit()
         except BaseException as e:
-            QMessageBox.warning(self, 'Database Error', str(e), QMessageBox.Ok)           
+            QMessageBox.warning(self, 'Database Error', str(e), QMessageBox.Ok)        
+            
+    def pull_source(self, item_num):
+        cur = ConnectDB.qserver_connect(self)
+        with closing(cur) as db:
+            db.execute('SELECT SourceFilesCopyScript FROM ProductionData.dbo.BreezeProductionData WHERE PrintBarcode = '+ item_num)
+            ds = db.fetchone()
+            
+            if not ds:
+                QMessageBox.information(self, 'File Not Found', "Could not find artwork.", QMessageBox.Ok)
+            else:
+                return ds[0]    
         
+    def kill_artwork(self, item_num):
+        cur = ConnectDB.sqlConnect(self, 'ImportExport')
+        with closing(cur) as db:
+            db.execute("""INSERT INTO dbo.KillBreezeFiles (PrintBarcode, [User], DateModified, Hidden)
+                          VALUES ('"""+item_num+"""',HOST_NAME(), GETDATE(), 1)""")
+            db.commit()
+            
+class ProgressBarSplit(QMainWindow, Ui_pbarSplit):
+    canceled = pyqtSignal()
+    
+    def __init__(self, max_orders):
+        super(ProgressBarSplit, self).__init__()
+        self.setupUi(self)        
+        self.pbarSplitting.setMaximum(max_orders)   
+        self.btnCancel.clicked.connect(self.cancel)
+    
+    def setValue(self, val):
+        self.pbarSplitting.setValue(val)
+        
+    def cancel(self):
+        self.close()
+        self.canceled.emit()
         
 if __name__ == "__main__":
     myappid = 'Kornit Printing Utility'
@@ -434,5 +491,6 @@ if __name__ == "__main__":
     app.setStyle("plastique")
     kp = KornitPrint()
     kp.show()
+    kp.switch_printer_user()
     
     sys.exit(app.exec_())    
